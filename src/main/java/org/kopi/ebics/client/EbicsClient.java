@@ -34,6 +34,7 @@ import org.kopi.ebics.session.EbicsSession;
 import org.kopi.ebics.session.OrderType;
 import org.kopi.ebics.session.Product;
 import org.kopi.ebics.utils.Constants;
+import org.kopi.ebics.utils.Utils;
 
 import java.io.*;
 import java.net.URL;
@@ -580,7 +581,7 @@ public class EbicsClient {
         addOption(options, OrderType.HPB, "Send HPB request");
         options.addOption(null, "letters", false, "Create INI Letters");
         options.addOption(null, "create", false, "Create and initialize EBICS user");
-        addOption(options, OrderType.STA,"Fetch STA file (MT940 file)");
+        addOption(options, OrderType.STA, "Fetch STA file (MT940 file)");
         addOption(options, OrderType.VMK, "Fetch VMK file (MT942 file)");
         addOption(options, OrderType.C52, "Fetch camt.052 file");
 
@@ -607,6 +608,9 @@ public class EbicsClient {
         options.addOption("o", "output", true, "output file");
         options.addOption("i", "input", true, "input file");
 
+        options.addOption("f", "from", true, "From/start date (yyyy-MM-dd)");
+        options.addOption("t", "to", true, "To/end date (yyyy-MM-dd)");
+        options.addOption("test", "test", false, "test session");
 
         CommandLine cmd = parseArguments(options, args);
 
@@ -637,31 +641,44 @@ public class EbicsClient {
         String outputFileValue = cmd.getOptionValue("o");
         String inputFileValue = cmd.getOptionValue("i");
 
-         List<? extends EbicsOrderType> fetchFileOrders = Arrays.asList(OrderType.STA, OrderType.VMK,
+        String fromDateValue = cmd.getOptionValue("f");
+        String toDateValue = cmd.getOptionValue("t");
+
+        boolean isTest = false;
+        if (cmd.hasOption("test")) {
+            isTest = true;
+        }
+        Date start = null, end = null;
+        if (fromDateValue != null && !fromDateValue.isEmpty()) {
+            start = Utils.parse(fromDateValue);
+            end = (toDateValue != null && !toDateValue.isEmpty()) ? Utils.parse(toDateValue) : new Date();
+        } else if (toDateValue != null && !toDateValue.isEmpty()) {
+            throw new EbicsException("Start date required if end date is given");
+        }
+
+        List<? extends EbicsOrderType> fetchFileOrders = Arrays.asList(OrderType.STA, OrderType.VMK,
                 OrderType.C52, OrderType.C53, OrderType.C54,
-                OrderType.ZDF, OrderType.ZB6, OrderType.PTK, OrderType.HAC, OrderType.Z01,OrderType.Z53, OrderType.Z54);
+                OrderType.ZDF, OrderType.ZB6, OrderType.PTK, OrderType.HAC, OrderType.Z01, OrderType.Z53, OrderType.Z54);
 
         for (EbicsOrderType type : fetchFileOrders) {
             if (hasOption(cmd, type)) {
                 client.fetchFile(getOutputFile(outputFileValue), client.defaultUser,
-                    client.defaultProduct, type, false, null, null);
+                        client.defaultProduct, type, isTest, start, end);
                 break;
             }
         }
 
-        List<? extends EbicsOrderType> sendFileOrders = Arrays.asList(OrderType.XKD, OrderType.FUL, OrderType.XCT,
-            OrderType.XE2, OrderType.CCT);
+        List<? extends EbicsOrderType> sendFileOrders = Arrays.asList(OrderType.XKD, OrderType.FUL, OrderType.XCT, OrderType.XE2, OrderType.CCT);
         for (EbicsOrderType type : sendFileOrders) {
             if (hasOption(cmd, type)) {
-                client.sendFile(new File(inputFileValue), client.defaultUser,
-                    client.defaultProduct, type);
+                client.sendFile(new File(inputFileValue), client.defaultUser, client.defaultProduct, type);
                 break;
             }
         }
 
         if (cmd.hasOption("skip_order")) {
             int count = Integer.parseInt(cmd.getOptionValue("skip_order"));
-            while(count-- > 0) {
+            while (count-- > 0) {
                 client.defaultUser.getPartner().nextOrderId();
             }
         }
