@@ -18,16 +18,16 @@
 
 package org.kopi.ebics.xml;
 
-import java.util.Calendar;
-
 import org.kopi.ebics.exception.EbicsException;
-import org.kopi.ebics.schema.h003.AuthenticationPubKeyInfoType;
-import org.kopi.ebics.schema.h003.EncryptionPubKeyInfoType;
-import org.kopi.ebics.schema.h003.HIARequestOrderDataType;
-import org.kopi.ebics.schema.h003.PubKeyValueType;
+import org.kopi.ebics.schema.h004.AuthenticationPubKeyInfoType;
+import org.kopi.ebics.schema.h004.EncryptionPubKeyInfoType;
+import org.kopi.ebics.schema.h004.HIARequestOrderDataType;
+import org.kopi.ebics.schema.h004.PubKeyValueType;
 import org.kopi.ebics.schema.xmldsig.RSAKeyValueType;
 import org.kopi.ebics.schema.xmldsig.X509DataType;
 import org.kopi.ebics.session.EbicsSession;
+
+import java.util.Calendar;
 
 
 /**

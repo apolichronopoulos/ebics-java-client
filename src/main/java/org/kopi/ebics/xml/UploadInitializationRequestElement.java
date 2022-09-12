@@ -19,37 +19,30 @@
 
 package org.kopi.ebics.xml;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-
 import org.kopi.ebics.exception.EbicsException;
 import org.kopi.ebics.interfaces.ContentFactory;
 import org.kopi.ebics.interfaces.EbicsOrderType;
 import org.kopi.ebics.io.Splitter;
-import org.kopi.ebics.schema.h003.DataEncryptionInfoType.EncryptionPubKeyDigest;
-import org.kopi.ebics.schema.h003.DataTransferRequestType;
-import org.kopi.ebics.schema.h003.DataTransferRequestType.DataEncryptionInfo;
-import org.kopi.ebics.schema.h003.DataTransferRequestType.SignatureData;
-import org.kopi.ebics.schema.h003.EbicsRequestDocument.EbicsRequest;
-import org.kopi.ebics.schema.h003.EbicsRequestDocument.EbicsRequest.Body;
-import org.kopi.ebics.schema.h003.EbicsRequestDocument.EbicsRequest.Header;
-import org.kopi.ebics.schema.h003.FULOrderParamsType;
-import org.kopi.ebics.schema.h003.FileFormatType;
-import org.kopi.ebics.schema.h003.MutableHeaderType;
-import org.kopi.ebics.schema.h003.OrderAttributeType;
-import org.kopi.ebics.schema.h003.ParameterDocument.Parameter;
-import org.kopi.ebics.schema.h003.ParameterDocument.Parameter.Value;
-import org.kopi.ebics.schema.h003.StandardOrderParamsType;
-import org.kopi.ebics.schema.h003.StaticHeaderOrderDetailsType;
-import org.kopi.ebics.schema.h003.StaticHeaderOrderDetailsType.OrderType;
-import org.kopi.ebics.schema.h003.StaticHeaderType;
-import org.kopi.ebics.schema.h003.StaticHeaderType.BankPubKeyDigests;
-import org.kopi.ebics.schema.h003.StaticHeaderType.BankPubKeyDigests.Authentication;
-import org.kopi.ebics.schema.h003.StaticHeaderType.BankPubKeyDigests.Encryption;
-import org.kopi.ebics.schema.h003.StaticHeaderType.Product;
+import org.kopi.ebics.schema.h004.DataEncryptionInfoType.EncryptionPubKeyDigest;
+import org.kopi.ebics.schema.h004.*;
+import org.kopi.ebics.schema.h004.DataTransferRequestType.DataEncryptionInfo;
+import org.kopi.ebics.schema.h004.DataTransferRequestType.SignatureData;
+import org.kopi.ebics.schema.h004.EbicsRequestDocument.EbicsRequest;
+import org.kopi.ebics.schema.h004.EbicsRequestDocument.EbicsRequest.Body;
+import org.kopi.ebics.schema.h004.EbicsRequestDocument.EbicsRequest.Header;
+import org.kopi.ebics.schema.h004.ParameterDocument.Parameter;
+import org.kopi.ebics.schema.h004.ParameterDocument.Parameter.Value;
+import org.kopi.ebics.schema.h004.StaticHeaderOrderDetailsType.OrderType;
+import org.kopi.ebics.schema.h004.StaticHeaderType.BankPubKeyDigests;
+import org.kopi.ebics.schema.h004.StaticHeaderType.BankPubKeyDigests.Authentication;
+import org.kopi.ebics.schema.h004.StaticHeaderType.BankPubKeyDigests.Encryption;
+import org.kopi.ebics.schema.h004.StaticHeaderType.Product;
 import org.kopi.ebics.session.EbicsSession;
 import org.kopi.ebics.utils.Utils;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 
 /**
@@ -183,7 +176,7 @@ public class UploadInitializationRequestElement extends InitializationRequestEle
 
   @Override
   public byte[] toByteArray() {
-    setSaveSuggestedPrefixes("http://www.ebics.org/H003", "");
+    setSaveSuggestedPrefixes("urn:org:ebics:H004", "");
 
     return super.toByteArray();
   }

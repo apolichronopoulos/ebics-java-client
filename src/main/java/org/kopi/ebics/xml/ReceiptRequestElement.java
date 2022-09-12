@@ -19,20 +19,20 @@
 
 package org.kopi.ebics.xml;
 
+import org.kopi.ebics.exception.EbicsException;
+import org.kopi.ebics.schema.h004.EbicsRequestDocument;
+import org.kopi.ebics.schema.h004.EbicsRequestDocument.EbicsRequest;
+import org.kopi.ebics.schema.h004.EbicsRequestDocument.EbicsRequest.Body;
+import org.kopi.ebics.schema.h004.EbicsRequestDocument.EbicsRequest.Body.TransferReceipt;
+import org.kopi.ebics.schema.h004.EbicsRequestDocument.EbicsRequest.Header;
+import org.kopi.ebics.schema.h004.MutableHeaderType;
+import org.kopi.ebics.schema.h004.StaticHeaderType;
+import org.kopi.ebics.session.EbicsSession;
+import org.kopi.ebics.utils.Utils;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-
-import org.kopi.ebics.exception.EbicsException;
-import org.kopi.ebics.schema.h003.EbicsRequestDocument;
-import org.kopi.ebics.schema.h003.MutableHeaderType;
-import org.kopi.ebics.schema.h003.StaticHeaderType;
-import org.kopi.ebics.schema.h003.EbicsRequestDocument.EbicsRequest;
-import org.kopi.ebics.schema.h003.EbicsRequestDocument.EbicsRequest.Body;
-import org.kopi.ebics.schema.h003.EbicsRequestDocument.EbicsRequest.Header;
-import org.kopi.ebics.schema.h003.EbicsRequestDocument.EbicsRequest.Body.TransferReceipt;
-import org.kopi.ebics.session.EbicsSession;
-import org.kopi.ebics.utils.Utils;
 
 
 /**
@@ -86,7 +86,7 @@ public class ReceiptRequestElement extends DefaultEbicsRootElement {
 
   @Override
   public byte[] toByteArray() {
-    setSaveSuggestedPrefixes("http://www.ebics.org/H003", "");
+    setSaveSuggestedPrefixes("urn:org:ebics:H004", "");
 
     return super.toByteArray();
   }

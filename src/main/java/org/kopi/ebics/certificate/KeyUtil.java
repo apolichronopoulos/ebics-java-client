@@ -19,19 +19,13 @@
 
 package org.kopi.ebics.certificate;
 
-import java.io.UnsupportedEncodingException;
-import java.security.GeneralSecurityException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.interfaces.RSAPublicKey;
-
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.kopi.ebics.exception.EbicsException;
 import org.kopi.ebics.utils.Utils;
+
+import java.io.UnsupportedEncodingException;
+import java.security.*;
+import java.security.interfaces.RSAPublicKey;
 
 /**
  * Some key utilities
@@ -65,7 +59,7 @@ public class KeyUtil {
    * Returns the digest value of a given public key.
    *
    *
-   * <p>In Version “H003” of the EBICS protocol the ES of the financial:
+   * <p>In Version “H004” of the EBICS protocol the ES of the financial:
    *
    * <p>The SHA-256 hash values of the financial institution's public keys for X002 and E002 are
    * composed by concatenating the exponent with a blank character and the modulus in hexadecimal
