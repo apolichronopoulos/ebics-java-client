@@ -61,7 +61,9 @@ public enum OrderType implements EbicsOrderType {
     XCT,
     C52,
     C53,
-    C54;
+    C54,
+    Z53,
+    Z54;
 
     @Override
     public String getCode() {

@@ -583,6 +583,8 @@ public class EbicsClient {
         addOption(options, OrderType.STA,"Fetch STA file (MT940 file)");
         addOption(options, OrderType.VMK, "Fetch VMK file (MT942 file)");
         addOption(options, OrderType.C52, "Fetch camt.052 file");
+
+
         addOption(options, OrderType.C53, "Fetch camt.053 file");
         addOption(options, OrderType.C54, "Fetch camt.054 file");
         addOption(options, OrderType.ZDF, "Fetch ZDF file (zip file with documents)");
@@ -596,6 +598,9 @@ public class EbicsClient {
         addOption(options, OrderType.XCT, "Send XCT file (any format)");
         addOption(options, OrderType.XE2, "Send XE2 file (any format)");
         addOption(options, OrderType.CCT, "Send CCT file (any format)");
+
+        addOption(options, OrderType.Z53, "Fetch Z53 file (Swiss Kontoauszug)");
+        addOption(options, OrderType.Z54, "Fetch Z54 file (Swiss Sammler)");
 
         options.addOption(null, "skip_order", true, "Skip a number of order ids");
 
@@ -632,9 +637,9 @@ public class EbicsClient {
         String outputFileValue = cmd.getOptionValue("o");
         String inputFileValue = cmd.getOptionValue("i");
 
-        List<? extends EbicsOrderType> fetchFileOrders = Arrays.asList(OrderType.STA, OrderType.VMK,
-            OrderType.C52, OrderType.C53, OrderType.C54,
-            OrderType.ZDF, OrderType.ZB6, OrderType.PTK, OrderType.HAC, OrderType.Z01);
+         List<? extends EbicsOrderType> fetchFileOrders = Arrays.asList(OrderType.STA, OrderType.VMK,
+                OrderType.C52, OrderType.C53, OrderType.C54,
+                OrderType.ZDF, OrderType.ZB6, OrderType.PTK, OrderType.HAC, OrderType.Z01,OrderType.Z53, OrderType.Z54);
 
         for (EbicsOrderType type : fetchFileOrders) {
             if (hasOption(cmd, type)) {
