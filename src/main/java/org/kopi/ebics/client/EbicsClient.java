@@ -423,6 +423,41 @@ public class EbicsClient {
         fetchFile(file, defaultUser, defaultProduct, orderType, false, start, end);
     }
 
+    public void fetchFile(File file, EbicsOrderType orderType, boolean isTest, Date start, Date end) throws IOException,
+        EbicsException {
+        fetchFile(file, defaultUser, defaultProduct, orderType, isTest, start, end);
+    }
+
+    public String fetchFileContent(EbicsOrderType orderType, Date start, Date end) throws IOException, EbicsException {
+        return fetchFileContent(defaultUser, defaultProduct, orderType, false, start, end);
+    }
+
+    public String fetchFileContent(EbicsOrderType orderType, boolean isTest, Date start, Date end) throws IOException, EbicsException {
+        return fetchFileContent(defaultUser, defaultProduct, orderType, isTest, start, end);
+    }
+
+    public String fetchFileContent(User user, Product product, EbicsOrderType orderType,boolean isTest, Date start, Date end) throws IOException, EbicsException {
+        FileTransfer transferManager;
+        EbicsSession session = createSession(user, product);
+        session.addSessionParam("FORMAT", "pain.xxx.cfonb160.dct");
+        if (isTest) {
+            session.addSessionParam("TEST", "true");
+        }
+        transferManager = new FileTransfer(session);
+
+        configuration.getTraceManager().setTraceDirectory(configuration.getTransferTraceDirectory(user));
+
+        try {
+            return transferManager.fetchFile(orderType, start, end);
+        } catch (NoDownloadDataAvailableException e) {
+            // don't log this exception as an error, caller can decide how to handle
+            throw e;
+        } catch (Exception e) {
+            logger.error(messages.getString("download.file.error"), e);
+            throw e;
+        }
+    }
+
     /**
      * Performs buffers save before quitting the client application.
      */
@@ -662,8 +697,7 @@ public class EbicsClient {
 
         for (EbicsOrderType type : fetchFileOrders) {
             if (hasOption(cmd, type)) {
-                client.fetchFile(getOutputFile(outputFileValue), client.defaultUser,
-                        client.defaultProduct, type, isTest, start, end);
+                client.fetchFile(getOutputFile(outputFileValue), client.defaultUser, client.defaultProduct, type, isTest, start, end);
                 break;
             }
         }
