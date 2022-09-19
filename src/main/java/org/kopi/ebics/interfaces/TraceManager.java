@@ -66,4 +66,12 @@ public interface TraceManager {
    */
   void setTraceEnabled(boolean enabled);
 
+  /**
+   * Tells if the client application should keep XML transfer
+   * files in the transfer log directory
+   * @return True if the client application should not delete
+   *         the XML transfer files
+   */
+  boolean isTraceEnabled();
+
 }

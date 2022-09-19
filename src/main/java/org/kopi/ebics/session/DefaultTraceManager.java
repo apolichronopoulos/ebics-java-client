@@ -72,6 +72,8 @@ public class DefaultTraceManager implements TraceManager {
   @Override
   public void trace(EbicsRootElement element) throws EbicsException {
     try {
+      if (!cache.isTraceEnabled()) return;
+
       FileOutputStream		out;
       File			file;
 
@@ -102,6 +104,11 @@ public class DefaultTraceManager implements TraceManager {
   @Override
   public void setTraceEnabled(boolean enabled) {
     cache.setTraceEnabled(enabled);
+  }
+
+  @Override
+  public boolean isTraceEnabled() {
+    return cache.isTraceEnabled();
   }
 
   // --------------------------------------------------------------------

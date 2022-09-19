@@ -19,19 +19,15 @@
 
 package org.kopi.ebics.session;
 
+import org.kopi.ebics.interfaces.*;
+import org.kopi.ebics.io.IOUtils;
+import org.kopi.ebics.letter.DefaultLetterManager;
+
 import java.io.File;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
-
-import org.kopi.ebics.interfaces.Configuration;
-import org.kopi.ebics.interfaces.EbicsUser;
-import org.kopi.ebics.interfaces.LetterManager;
-import org.kopi.ebics.interfaces.SerializationManager;
-import org.kopi.ebics.interfaces.TraceManager;
-import org.kopi.ebics.io.IOUtils;
-import org.kopi.ebics.letter.DefaultLetterManager;
 
 
 /**
@@ -51,7 +47,8 @@ public class DefaultConfiguration implements Configuration {
     bundle = ResourceBundle.getBundle(RESOURCE_DIR);
     this.properties = properties;
     serializationManager = new DefaultSerializationManager();
-    traceManager = new DefaultTraceManager();
+    final boolean isTraceDisabled = "false".equalsIgnoreCase(properties.getProperty("trace"));
+    traceManager = new DefaultTraceManager(!isTraceDisabled);
   }
 
   /**
@@ -88,7 +85,6 @@ public class DefaultConfiguration implements Configuration {
     IOUtils.createDirectories(getUsersDirectory());
 
     serializationManager.setSerializationDirectory(getSerializationDirectory());
-    traceManager.setTraceEnabled(isTraceEnabled());
     letterManager = new DefaultLetterManager(getLocale());
   }
 
@@ -184,7 +180,7 @@ public class DefaultConfiguration implements Configuration {
 
   @Override
   public boolean isTraceEnabled() {
-    return true;
+    return traceManager != null && traceManager.isTraceEnabled();
   }
 
   @Override
