@@ -49,13 +49,13 @@ import java.util.*;
  */
 public class EbicsClient {
     private static File getRootDir() {
-        return new File(
-            System.getProperty("user.home") + File.separator + "ebics" + File.separator + "client");
+        File pathToUserHome = new File(System.getProperty("user.home") + File.separator + "ebics" + File.separator + "client");
+        return pathToUserHome.exists() ? pathToUserHome : new File("ebics" + File.separator + "client");
     }
 
     static {
         // this is for the logging config
-        System.setProperty("ebicsBasePath", getRootDir().getAbsolutePath());
+        // System.setProperty("ebicsBasePath", getRootDir().getAbsolutePath());
     }
 
     private static final Logger logger = LogManager.getLogger(EbicsClient.class);

@@ -5,3 +5,5 @@
 .settings/
 .project
 .run
+**/ebics/
+*.log
