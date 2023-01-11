@@ -19,30 +19,24 @@
 
 package org.kopi.ebics.xml;
 
-import java.util.Calendar;
-import java.util.Date;
-
 import org.kopi.ebics.exception.EbicsException;
 import org.kopi.ebics.interfaces.EbicsOrderType;
-import org.kopi.ebics.schema.h003.EbicsRequestDocument.EbicsRequest;
-import org.kopi.ebics.schema.h003.EbicsRequestDocument.EbicsRequest.Body;
-import org.kopi.ebics.schema.h003.EbicsRequestDocument.EbicsRequest.Header;
-import org.kopi.ebics.schema.h003.FDLOrderParamsType;
-import org.kopi.ebics.schema.h003.FDLOrderParamsType.DateRange;
-import org.kopi.ebics.schema.h003.FileFormatType;
-import org.kopi.ebics.schema.h003.MutableHeaderType;
-import org.kopi.ebics.schema.h003.OrderAttributeType;
-import org.kopi.ebics.schema.h003.ParameterDocument.Parameter;
-import org.kopi.ebics.schema.h003.ParameterDocument.Parameter.Value;
-import org.kopi.ebics.schema.h003.StandardOrderParamsType;
-import org.kopi.ebics.schema.h003.StaticHeaderOrderDetailsType;
-import org.kopi.ebics.schema.h003.StaticHeaderOrderDetailsType.OrderType;
-import org.kopi.ebics.schema.h003.StaticHeaderType;
-import org.kopi.ebics.schema.h003.StaticHeaderType.BankPubKeyDigests;
-import org.kopi.ebics.schema.h003.StaticHeaderType.BankPubKeyDigests.Authentication;
-import org.kopi.ebics.schema.h003.StaticHeaderType.BankPubKeyDigests.Encryption;
-import org.kopi.ebics.schema.h003.StaticHeaderType.Product;
+import org.kopi.ebics.schema.h004.EbicsRequestDocument.EbicsRequest;
+import org.kopi.ebics.schema.h004.EbicsRequestDocument.EbicsRequest.Body;
+import org.kopi.ebics.schema.h004.EbicsRequestDocument.EbicsRequest.Header;
+import org.kopi.ebics.schema.h004.*;
+import org.kopi.ebics.schema.h004.FDLOrderParamsType.DateRange;
+import org.kopi.ebics.schema.h004.ParameterDocument.Parameter;
+import org.kopi.ebics.schema.h004.ParameterDocument.Parameter.Value;
+import org.kopi.ebics.schema.h004.StaticHeaderOrderDetailsType.OrderType;
+import org.kopi.ebics.schema.h004.StaticHeaderType.BankPubKeyDigests;
+import org.kopi.ebics.schema.h004.StaticHeaderType.BankPubKeyDigests.Authentication;
+import org.kopi.ebics.schema.h004.StaticHeaderType.BankPubKeyDigests.Encryption;
+import org.kopi.ebics.schema.h004.StaticHeaderType.Product;
 import org.kopi.ebics.session.EbicsSession;
+
+import java.util.Calendar;
+import java.util.Date;
 
 
 /**
@@ -125,14 +119,23 @@ public class DownloadInitializationRequestElement extends InitializationRequestE
                                                                         orderType,
                                                                         fDLOrderParamsType);
     } else {
-      StandardOrderParamsType		standardOrderParamsType;
-
-      standardOrderParamsType = EbicsXmlFactory.createStandardOrderParamsType();
-      //FIXME Some banks cannot handle OrderID element in download process. Add parameter in configuration!!!
-      orderDetails = EbicsXmlFactory.createStaticHeaderOrderDetailsType(null,//session.getUser().getPartner().nextOrderId(),
-	                                                                OrderAttributeType.DZHNN,
-	                                                                orderType,
-	                                                                standardOrderParamsType);
+        StandardOrderParamsType standardOrderParamsType;
+        standardOrderParamsType = EbicsXmlFactory.createStandardOrderParamsType();
+        if (startRange != null && endRange != null) {
+            StandardOrderParamsType.DateRange range = StandardOrderParamsType.DateRange.Factory.newInstance();
+            Calendar start = Calendar.getInstance();
+            Calendar end = Calendar.getInstance();
+            start.setTime(startRange);
+            end.setTime(endRange);
+            range.setStart(start);
+            range.setEnd(end);
+            standardOrderParamsType.setDateRange(range);
+        }
+        //FIXME Some banks cannot handle OrderID element in download process. Add parameter in configuration!!!
+        orderDetails = EbicsXmlFactory.createStaticHeaderOrderDetailsType(null, //session.getUser().getPartner().nextOrderId(),
+                OrderAttributeType.DZHNN,
+                orderType,
+                standardOrderParamsType);
     }
     xstatic = EbicsXmlFactory.createStaticHeaderType(session.getBankID(),
                                                      nonce,

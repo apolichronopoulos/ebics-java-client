@@ -91,6 +91,10 @@ public class FileCache {
     this.isTraceEnabled = enabled;
   }
 
+  public boolean isTraceEnabled() {
+    return isTraceEnabled;
+  }
+
   // --------------------------------------------------------------------
   // DATA MEMBERS
   // --------------------------------------------------------------------

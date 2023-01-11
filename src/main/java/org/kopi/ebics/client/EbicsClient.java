@@ -19,47 +19,27 @@
 
 package org.kopi.ebics.client;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.net.URL;
-import java.security.GeneralSecurityException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.kopi.ebics.exception.EbicsException;
 import org.kopi.ebics.exception.NoDownloadDataAvailableException;
-import org.kopi.ebics.interfaces.Configuration;
-import org.kopi.ebics.interfaces.EbicsBank;
-import org.kopi.ebics.interfaces.EbicsOrderType;
-import org.kopi.ebics.interfaces.EbicsUser;
-import org.kopi.ebics.interfaces.InitLetter;
-import org.kopi.ebics.interfaces.LetterManager;
-import org.kopi.ebics.interfaces.PasswordCallback;
+import org.kopi.ebics.interfaces.*;
 import org.kopi.ebics.io.IOUtils;
 import org.kopi.ebics.messages.Messages;
-import org.kopi.ebics.schema.h003.OrderAttributeType;
+import org.kopi.ebics.schema.h004.OrderAttributeType;
 import org.kopi.ebics.session.DefaultConfiguration;
 import org.kopi.ebics.session.EbicsSession;
 import org.kopi.ebics.session.OrderType;
 import org.kopi.ebics.session.Product;
 import org.kopi.ebics.utils.Constants;
+import org.kopi.ebics.utils.Utils;
+
+import java.io.*;
+import java.net.URL;
+import java.security.GeneralSecurityException;
+import java.util.*;
 
 /**
  * The ebics client application. Performs necessary tasks to contact the ebics
@@ -69,13 +49,13 @@ import org.kopi.ebics.utils.Constants;
  */
 public class EbicsClient {
     private static File getRootDir() {
-        return new File(
-            System.getProperty("user.home") + File.separator + "ebics" + File.separator + "client");
+        File pathToUserHome = new File(System.getProperty("user.home") + File.separator + "ebics" + File.separator + "client");
+        return pathToUserHome.exists() ? pathToUserHome : new File("ebics" + File.separator + "client");
     }
 
     static {
         // this is for the logging config
-        System.setProperty("ebicsBasePath", getRootDir().getAbsolutePath());
+        // System.setProperty("ebicsBasePath", getRootDir().getAbsolutePath());
     }
 
     private static final Logger logger = LogManager.getLogger(EbicsClient.class);
@@ -443,6 +423,41 @@ public class EbicsClient {
         fetchFile(file, defaultUser, defaultProduct, orderType, false, start, end);
     }
 
+    public void fetchFile(File file, EbicsOrderType orderType, boolean isTest, Date start, Date end) throws IOException,
+        EbicsException {
+        fetchFile(file, defaultUser, defaultProduct, orderType, isTest, start, end);
+    }
+
+    public String fetchFileContent(EbicsOrderType orderType, Date start, Date end) throws IOException, EbicsException {
+        return fetchFileContent(defaultUser, defaultProduct, orderType, false, start, end);
+    }
+
+    public String fetchFileContent(EbicsOrderType orderType, boolean isTest, Date start, Date end) throws IOException, EbicsException {
+        return fetchFileContent(defaultUser, defaultProduct, orderType, isTest, start, end);
+    }
+
+    public String fetchFileContent(User user, Product product, EbicsOrderType orderType,boolean isTest, Date start, Date end) throws IOException, EbicsException {
+        FileTransfer transferManager;
+        EbicsSession session = createSession(user, product);
+        session.addSessionParam("FORMAT", "pain.xxx.cfonb160.dct");
+        if (isTest) {
+            session.addSessionParam("TEST", "true");
+        }
+        transferManager = new FileTransfer(session);
+
+        configuration.getTraceManager().setTraceDirectory(configuration.getTransferTraceDirectory(user));
+
+        try {
+            return transferManager.fetchFile(orderType, start, end);
+        } catch (NoDownloadDataAvailableException e) {
+            // don't log this exception as an error, caller can decide how to handle
+            throw e;
+        } catch (Exception e) {
+            logger.error(messages.getString("download.file.error"), e);
+            throw e;
+        }
+    }
+
     /**
      * Performs buffers save before quitting the client application.
      */
@@ -601,9 +616,11 @@ public class EbicsClient {
         addOption(options, OrderType.HPB, "Send HPB request");
         options.addOption(null, "letters", false, "Create INI Letters");
         options.addOption(null, "create", false, "Create and initialize EBICS user");
-        addOption(options, OrderType.STA,"Fetch STA file (MT940 file)");
+        addOption(options, OrderType.STA, "Fetch STA file (MT940 file)");
         addOption(options, OrderType.VMK, "Fetch VMK file (MT942 file)");
         addOption(options, OrderType.C52, "Fetch camt.052 file");
+
+
         addOption(options, OrderType.C53, "Fetch camt.053 file");
         addOption(options, OrderType.C54, "Fetch camt.054 file");
         addOption(options, OrderType.ZDF, "Fetch ZDF file (zip file with documents)");
@@ -618,11 +635,17 @@ public class EbicsClient {
         addOption(options, OrderType.XE2, "Send XE2 file (any format)");
         addOption(options, OrderType.CCT, "Send CCT file (any format)");
 
+        addOption(options, OrderType.Z53, "Fetch Z53 file (Swiss Kontoauszug)");
+        addOption(options, OrderType.Z54, "Fetch Z54 file (Swiss Sammler)");
+
         options.addOption(null, "skip_order", true, "Skip a number of order ids");
 
         options.addOption("o", "output", true, "output file");
         options.addOption("i", "input", true, "input file");
 
+        options.addOption("f", "from", true, "From/start date (yyyy-MM-dd)");
+        options.addOption("t", "to", true, "To/end date (yyyy-MM-dd)");
+        options.addOption("test", "test", false, "test session");
 
         CommandLine cmd = parseArguments(options, args);
 
@@ -653,31 +676,43 @@ public class EbicsClient {
         String outputFileValue = cmd.getOptionValue("o");
         String inputFileValue = cmd.getOptionValue("i");
 
+        String fromDateValue = cmd.getOptionValue("f");
+        String toDateValue = cmd.getOptionValue("t");
+
+        boolean isTest = false;
+        if (cmd.hasOption("test")) {
+            isTest = true;
+        }
+        Date start = null, end = null;
+        if (fromDateValue != null && !fromDateValue.isEmpty()) {
+            start = Utils.parse(fromDateValue);
+            end = (toDateValue != null && !toDateValue.isEmpty()) ? Utils.parse(toDateValue) : new Date();
+        } else if (toDateValue != null && !toDateValue.isEmpty()) {
+            throw new EbicsException("Start date required if end date is given");
+        }
+
         List<? extends EbicsOrderType> fetchFileOrders = Arrays.asList(OrderType.STA, OrderType.VMK,
-            OrderType.C52, OrderType.C53, OrderType.C54,
-            OrderType.ZDF, OrderType.ZB6, OrderType.PTK, OrderType.HAC, OrderType.Z01);
+                OrderType.C52, OrderType.C53, OrderType.C54,
+                OrderType.ZDF, OrderType.ZB6, OrderType.PTK, OrderType.HAC, OrderType.Z01, OrderType.Z53, OrderType.Z54);
 
         for (EbicsOrderType type : fetchFileOrders) {
             if (hasOption(cmd, type)) {
-                client.fetchFile(getOutputFile(outputFileValue), client.defaultUser,
-                    client.defaultProduct, type, false, null, null);
+                client.fetchFile(getOutputFile(outputFileValue), client.defaultUser, client.defaultProduct, type, isTest, start, end);
                 break;
             }
         }
 
-        List<? extends EbicsOrderType> sendFileOrders = Arrays.asList(OrderType.XKD, OrderType.FUL, OrderType.XCT,
-            OrderType.XE2, OrderType.CCT);
+        List<? extends EbicsOrderType> sendFileOrders = Arrays.asList(OrderType.XKD, OrderType.FUL, OrderType.XCT, OrderType.XE2, OrderType.CCT);
         for (EbicsOrderType type : sendFileOrders) {
             if (hasOption(cmd, type)) {
-                client.sendFile(new File(inputFileValue), client.defaultUser,
-                    client.defaultProduct, type);
+                client.sendFile(new File(inputFileValue), client.defaultUser, client.defaultProduct, type);
                 break;
             }
         }
 
         if (cmd.hasOption("skip_order")) {
             int count = Integer.parseInt(cmd.getOptionValue("skip_order"));
-            while(count-- > 0) {
+            while (count-- > 0) {
                 client.defaultUser.getPartner().nextOrderId();
             }
         }

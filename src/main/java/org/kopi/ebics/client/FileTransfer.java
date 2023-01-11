@@ -19,11 +19,6 @@
 
 package org.kopi.ebics.client;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Date;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.kopi.ebics.exception.EbicsException;
@@ -32,21 +27,17 @@ import org.kopi.ebics.interfaces.EbicsOrderType;
 import org.kopi.ebics.io.ByteArrayContentFactory;
 import org.kopi.ebics.io.Joiner;
 import org.kopi.ebics.messages.Messages;
-import org.kopi.ebics.schema.h003.OrderAttributeType;
+import org.kopi.ebics.schema.h004.OrderAttributeType;
 import org.kopi.ebics.session.EbicsSession;
 import org.kopi.ebics.utils.Constants;
 import org.kopi.ebics.utils.Utils;
-import org.kopi.ebics.xml.DefaultEbicsRootElement;
-import org.kopi.ebics.xml.DownloadInitializationRequestElement;
-import org.kopi.ebics.xml.DownloadInitializationResponseElement;
-import org.kopi.ebics.xml.DownloadTransferRequestElement;
-import org.kopi.ebics.xml.DownloadTransferResponseElement;
-import org.kopi.ebics.xml.InitializationResponseElement;
-import org.kopi.ebics.xml.ReceiptRequestElement;
-import org.kopi.ebics.xml.ReceiptResponseElement;
-import org.kopi.ebics.xml.TransferResponseElement;
-import org.kopi.ebics.xml.UploadInitializationRequestElement;
-import org.kopi.ebics.xml.UploadTransferRequestElement;
+import org.kopi.ebics.xml.*;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Date;
 
 
 /**
@@ -243,6 +234,81 @@ public class FileTransfer {
     receiptResponse.build();
     session.getConfiguration().getTraceManager().trace(receiptResponse);
     receiptResponse.report();
+  }
+
+  /**
+   * Fetches the content a file of the given order type from the bank.
+   * You may give an optional start and end date.
+   * This type of transfer will run until everything is processed.
+   * No transaction recovery is possible.
+   * @param orderType type of file to fetch
+   * @param start optional begin of fetch term
+   * @param end optional end of fetch term
+   * @return String the content of the file
+   * @throws IOException communication error
+   * @throws EbicsException server generated error
+   */
+  public String fetchFile(EbicsOrderType orderType, Date start, Date end) throws IOException, EbicsException {
+      HttpRequestSender sender;
+      DownloadInitializationRequestElement initializer;
+      DownloadInitializationResponseElement response;
+      ReceiptRequestElement receipt;
+      ReceiptResponseElement receiptResponse;
+      int httpCode;
+      TransferState state;
+      Joiner joiner;
+
+      sender = new HttpRequestSender(session);
+      initializer = new DownloadInitializationRequestElement(session,
+              orderType,
+              start,
+              end);
+      initializer.build();
+      initializer.validate();
+
+      session.getConfiguration().getTraceManager().trace(initializer);
+      httpCode = sender.send(new ByteArrayContentFactory(initializer.prettyPrint()));
+      Utils.checkHttpCode(httpCode);
+      response = new DownloadInitializationResponseElement(sender.getResponseBody(),
+              orderType,
+              DefaultEbicsRootElement.generateName(orderType));
+
+      response.build();
+      session.getConfiguration().getTraceManager().trace(response);
+      response.report();
+      state = new TransferState(response.getSegmentsNumber(), response.getTransactionId());
+      state.setSegmentNumber(response.getSegmentNumber());
+      joiner = new Joiner(session.getUser());
+      joiner.append(response.getOrderData());
+      while (state.hasNext()) {
+          int segmentNumber;
+
+          segmentNumber = state.next();
+          fetchFile(orderType,
+                  segmentNumber,
+                  state.isLastSegment(),
+                  state.getTransactionId(),
+                  joiner);
+      }
+
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      joiner.writeTo(baos, response.getTransactionKey());
+
+      receipt = new ReceiptRequestElement(session,
+              state.getTransactionId(),
+              DefaultEbicsRootElement.generateName(orderType));
+      receipt.build();
+      receipt.validate();
+      session.getConfiguration().getTraceManager().trace(receipt);
+      httpCode = sender.send(new ByteArrayContentFactory(receipt.prettyPrint()));
+      Utils.checkHttpCode(httpCode);
+      receiptResponse = new ReceiptResponseElement(sender.getResponseBody(),
+              DefaultEbicsRootElement.generateName(orderType));
+      receiptResponse.build();
+      session.getConfiguration().getTraceManager().trace(receiptResponse);
+      receiptResponse.report();
+
+      return baos.toString("UTF-8");
   }
 
   /**

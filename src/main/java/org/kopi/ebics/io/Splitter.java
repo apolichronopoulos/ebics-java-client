@@ -19,11 +19,11 @@
 
 package org.kopi.ebics.io;
 
-import javax.crypto.spec.SecretKeySpec;
-
 import org.kopi.ebics.exception.EbicsException;
 import org.kopi.ebics.interfaces.ContentFactory;
 import org.kopi.ebics.utils.Utils;
+
+import javax.crypto.spec.SecretKeySpec;
 
 
 /**
@@ -92,7 +92,7 @@ public class Splitter {
    * 
    * <p> EBICS Specification 2.4.2 - 7 Segmentation of the order data:
    * 
-   * <p>In Version H003 of the EBICS standard, order data that requires more than 1 MB of storage
+   * <p>In Version H004 of the EBICS standard, order data that requires more than 1 MB of storage
    * space in compressed, encrypted and base64-coded form MUST be segmented before
    * transmission, irrespective of the transfer direction (upload/download).
    * 

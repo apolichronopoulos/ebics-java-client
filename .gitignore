@@ -1,3 +1,9 @@
 /target/
 .idea
 *.iml
+.classpath
+.settings/
+.project
+.run
+**/ebics/
+*.log
